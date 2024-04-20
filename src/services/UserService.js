@@ -91,3 +91,17 @@ exports.generateToken = (userId, userEmail) => {
     const token = jwt.sign(payload, process.env.JWT_SECRET, options)
     return token
 }
+
+exports.findUnverifiedUsers = () => {
+    const unverifiedUsers = prisma.user.findMany({
+        where: {
+            isVerified: null
+        }
+    });
+
+    return unverifiedUsers
+}
+
+exports.sendVerificationEmail = (email) => {
+    console.log(`verification email has been sent to ${email}`)
+}
