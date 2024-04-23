@@ -26,5 +26,5 @@ model User {
   // add bank accout details -- Naimat
   //not been migrated yet
   bankName String
-  accountNumber String @unique
+  accountNumber String
 }
