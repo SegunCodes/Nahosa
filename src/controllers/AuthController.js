@@ -12,6 +12,8 @@ const bcryptjs = require("bcryptjs");
 const cron = require("node-cron");
 const NodeCache = require("node-cache");
 const myCache = new NodeCache();
+const redis = require('redis')
+const client = redis.createClient()
 exports.registerUser = async (req, res) => {
   try {
     const { email, name, password } = req.body;
@@ -177,3 +179,28 @@ async function alertUnverifiedUsers() {
 
 const secondcronjob = cron.schedule(newCronSchedule, alertUnverifiedUsers);
 secondcronjob.start();
+
+// TODO: We'll touch redis during containerization with docker
+exports.getUserFromRedis = async (req, res) => {
+    const { email } = req.body;
+    client.get(email, async (error, userData) => {
+        if (error) {
+            reject(error)
+        } else if (userData){
+            resolve(JSON.parse(userData))
+        } else {
+            // get user from db
+            userData = await findUserByEmail(email);
+            if (!userData) {
+                return res.status(400).json({
+                    success: false,
+                    data: [],
+                    message: "Invalid email",
+                });
+            }
+            //store to redis
+            client.setEx(email, 600, JSON.stringify(userData))
+            resolve(userData)
+        }
+    })
+};
