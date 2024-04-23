@@ -23,4 +23,8 @@ model User {
   loginAttempts Int @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  // add bank accout details -- Naimat
+  //not been migrated yet
+  bankName String
+  accountNumber String @unique
 }
