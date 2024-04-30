@@ -13,6 +13,12 @@ const cron = require("node-cron");
 const NodeCache = require("node-cache");
 const myCache = new NodeCache();
 
+const redis = require('redis')
+const client = redis.createClient({
+  host: 'localhost',
+  port: 6379
+})
+
 exports.registerUser = async (req, res) => {
   try {
     const { email, name, password } = req.body;
@@ -201,6 +207,7 @@ async function alertUnverifiedUsers() {
 const secondcronjob = cron.schedule(newCronSchedule, alertUnverifiedUsers);
 secondcronjob.start();
 
+
 const userBalanceCache = new cache({ stdTTL: 60 });
 
 
@@ -226,6 +233,41 @@ exports.getUserBalance = async (req, res) => {
         if (!user) {
             
             return res.status(404).json({ error: 'User not found' });
+
+// TODO: We'll touch redis during containerization with docker
+exports.getUserFromRedis = async (req, res) => {
+    const { email } = req.body;
+    client.get(email, async (error, userData) => {
+        if (error) {
+          return res.status(500).json({
+            success: true,
+            data: {},
+            message: error,
+          });
+        } else if (userData){
+          return res.status(200).json({
+            success: true,
+            data: JSON.parse(userData),
+            message: "fetched sucessfully from redis",
+          });
+        } else {
+            // get user from db
+            userData = await findUserByEmail(email);
+            if (!userData) {
+                return res.status(400).json({
+                    success: false,
+                    data: [],
+                    message: "Invalid email",
+                });
+            }
+            //store to redis
+            client.setEx(email, 600, JSON.stringify(userData))
+            return res.status(200).json({
+              success: true,
+              data: JSON.parse(userData),
+              message: "fetched sucessfully from db and stored in redis",
+            });
+
         }
 
         
