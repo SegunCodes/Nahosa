@@ -13,7 +13,10 @@ const cron = require("node-cron");
 const NodeCache = require("node-cache");
 const myCache = new NodeCache();
 const redis = require('redis')
-const client = redis.createClient()
+const client = redis.createClient({
+  host: 'localhost',
+  port: 6379
+})
 exports.registerUser = async (req, res) => {
   try {
     const { email, name, password } = req.body;
@@ -185,9 +188,17 @@ exports.getUserFromRedis = async (req, res) => {
     const { email } = req.body;
     client.get(email, async (error, userData) => {
         if (error) {
-            reject(error)
+          return res.status(500).json({
+            success: true,
+            data: {},
+            message: error,
+          });
         } else if (userData){
-            resolve(JSON.parse(userData))
+          return res.status(200).json({
+            success: true,
+            data: JSON.parse(userData),
+            message: "fetched sucessfully from redis",
+          });
         } else {
             // get user from db
             userData = await findUserByEmail(email);
@@ -200,7 +211,11 @@ exports.getUserFromRedis = async (req, res) => {
             }
             //store to redis
             client.setEx(email, 600, JSON.stringify(userData))
-            resolve(userData)
+            return res.status(200).json({
+              success: true,
+              data: JSON.parse(userData),
+              message: "fetched sucessfully from db and stored in redis",
+            });
         }
     })
 };
