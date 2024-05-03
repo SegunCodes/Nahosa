@@ -12,11 +12,8 @@ const bcryptjs = require("bcryptjs");
 const cron = require("node-cron");
 const NodeCache = require("node-cache");
 const myCache = new NodeCache();
-const redis = require('redis')
-const client = redis.createClient({
-  host: 'localhost',
-  port: 6379
-})
+const client = require("../services/Redis")
+
 exports.registerUser = async (req, res) => {
   try {
     const { email, name, password } = req.body;

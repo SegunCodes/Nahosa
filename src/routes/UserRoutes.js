@@ -5,6 +5,7 @@ const UserController = require("../controllers/UserController")
 const userRoutes = express.Router()
 
 userRoutes.post("/searchUser", AuthMiddleware.protectedUser, AuthController.getUserFromNodeCache) 
+userRoutes.post("/searchUserB", AuthController.getUserFromRedis) 
 userRoutes.post("/UserDetails", UserController.addAccountDetails)
 
 module.exports = userRoutes
