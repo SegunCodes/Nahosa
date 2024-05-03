@@ -137,6 +137,28 @@ exports.getUserFromNodeCache = async (req, res) => {
   });
 };
 
+
+exports.updateBalance = async (req, res) => {
+  try {
+      
+      const userId = parseInt(req.params.id);
+      const { newBalance } = req.body;
+
+      
+      await prisma.user.update({
+          where: { id: userId },
+          data: { balance: newBalance }
+      });
+
+      
+      res.status(200).json({ message: 'Balance updated successfully' });
+  } catch (error) {
+     
+      console.error('Error updating balance:', error);
+      res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
 // cron jobs
 // A cronjob is a scheduled task that is executed automatically at specific intervals on a unix os.
 const cronSchedule = "* * * * *";
@@ -182,37 +204,40 @@ secondcronjob.start();
 
 // TODO: We'll touch redis during containerization with docker
 exports.getUserFromRedis = async (req, res) => {
-    const { email } = req.body;
-    client.get(email, async (error, userData) => {
-        if (error) {
-          return res.status(500).json({
-            success: true,
-            data: {},
-            message: error,
-          });
-        } else if (userData){
+  const { email } = req.body;
+  client.get(email, async (error, userData) => {
+      if (error) {
+        return res.status(500).json({
+          success: true,
+          data: {},
+          message: error,
+        });
+      } else if (userData){
+        return res.status(200).json({
+          success: true,
+          data: JSON.parse(userData),
+          message: "fetched sucessfully from redis",
+        });
+      } else {
+          // get user from db
+          userData = await findUserByEmail(email);
+          if (!userData) {
+              return res.status(400).json({
+                  success: false,
+                  data: [],
+                  message: "Invalid email",
+              });
+          }
+          //store to redis
+          client.setEx(email, 600, JSON.stringify(userData))
           return res.status(200).json({
             success: true,
             data: JSON.parse(userData),
-            message: "fetched sucessfully from redis",
+            message: "fetched sucessfully from db and stored in redis",
           });
-        } else {
-            // get user from db
-            userData = await findUserByEmail(email);
-            if (!userData) {
-                return res.status(400).json({
-                    success: false,
-                    data: [],
-                    message: "Invalid email",
-                });
-            }
-            //store to redis
-            client.setEx(email, 600, JSON.stringify(userData))
-            return res.status(200).json({
-              success: true,
-              data: JSON.parse(userData),
-              message: "fetched sucessfully from db and stored in redis",
-            });
-        }
-    })
+
+      }
+  })
 };
+
+
