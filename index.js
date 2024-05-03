@@ -2,6 +2,7 @@ const express = require("express")
 const dotenv = require("dotenv").config()
 const cors = require("cors");
 const authRoutes = require("./src/routes/AuthRoutes");
+const userRoutes = require("./src/routes/UserRoutes");
 const port = process.env.PORT || 4004
 
 const app = express();
@@ -14,5 +15,6 @@ app.get("/", (req, res) => {
     })
 })
 app.use("/auth", authRoutes)
+app.use("/user", userRoutes)
 
 app.listen(port, () => console.log(`server started on port ${port}`))

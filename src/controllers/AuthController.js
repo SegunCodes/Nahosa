@@ -137,28 +137,6 @@ exports.getUserFromNodeCache = async (req, res) => {
   });
 };
 
-
-exports.updateBalance = async (req, res) => {
-  try {
-      
-      const userId = parseInt(req.params.id);
-      const { newBalance } = req.body;
-
-      
-      await prisma.user.update({
-          where: { id: userId },
-          data: { balance: newBalance }
-      });
-
-      
-      res.status(200).json({ message: 'Balance updated successfully' });
-  } catch (error) {
-     
-      console.error('Error updating balance:', error);
-      res.status(500).json({ error: 'Internal server error' });
-  }
-};
-
 // cron jobs
 // A cronjob is a scheduled task that is executed automatically at specific intervals on a unix os.
 const cronSchedule = "* * * * *";
@@ -207,6 +185,7 @@ exports.getUserFromRedis = async (req, res) => {
   const { email } = req.body;
   client.get(email, async (error, userData) => {
       if (error) {
+        console.log(" i am here")
         return res.status(500).json({
           success: true,
           data: {},

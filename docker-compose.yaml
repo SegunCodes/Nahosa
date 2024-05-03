@@ -1,0 +1,22 @@
+version: '3.7'
+
+services:
+  nahosa-dev-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "4004:4004"
+    depends_on:
+      - redis
+      - mysql
+  
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+
+  # mysql:
+  #   image: mysql:latest
+  #   ports:
+  #     - 3306:3306
