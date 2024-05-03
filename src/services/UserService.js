@@ -106,3 +106,17 @@ exports.sendVerificationEmail = (email) => {
     console.log(`verification email has been sent to ${email}`)
 }
 
+exports.addUserDetails = async (email, accountNumber, bankName) => {
+    try {
+        await prisma.user.update({
+            where: {email},
+            data : {
+               accountNumber,
+               bankName 
+            },
+        });
+      } catch (error) {
+        console.log(error)
+      }
+}
+
